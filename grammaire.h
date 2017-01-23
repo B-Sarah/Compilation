@@ -1,31 +1,20 @@
 #ifndef GRAMMAIRE_H
 #define GRAMMAIRE_H
 
-/*struct Conc;
-typedef struct Conc Conc;
-struct Union;
-typedef struct Union Union;
-struct Star;
-typedef struct Star Star;
-struct Un;
-typedef struct Un Un;
-struct Atom;
-typedef struct Atom Atom;
-union PTR;
-typedef union PTR PTR;
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-extern PTR[5] treeArray;
+union __PTR;
+typedef union __PTR __PTR;
+
+struct PTR;
+typedef struct PTR PTR;
 
 typedef enum {TER,NONTER} AtomType;
+typedef enum {CONC,UNION,STAR,UN,ATOM} Operation;
 
-typedef union {
-	Conc conc;
-	Union _union;
-	Star star;
-	Un un;
-	Atom atom;
-} PTR;
- 
+
 typedef struct {
 	PTR* left;
 	PTR* right;
@@ -45,17 +34,45 @@ typedef struct {
 } Un;
 
 typedef struct {
-	char cod;
+	char cod[10];
 	int action;
 	AtomType aType;
 } Atom;
-*/
 
-PTR* GenCon(PTR p1, PTR p2);
-PTR* GenUnion(PTR p1, PTR p2);
-PTR* GenStar(PTR p1);
-PTR* GenUn(PTR p1);
-PTR* GenAtom(char cod, int action, AtomType aType);
+union __PTR{
+	Conc conc;
+	Union _union;
+	Star star;
+	Un un;
+	Atom atom;
+};
+
+
+struct PTR{
+    __PTR* value;
+    Operation type;
+};
+
+extern PTR* treeArray[5];
+
+PTR* GenConc(PTR* p1, PTR* p2);
+PTR* GenUnion(PTR* p1, PTR* p2);
+PTR* GenStar(PTR* p1);
+PTR* GenUn(PTR* p1);
+PTR* GenAtom(const char* cod, int action, AtomType aType);
+
+void printRepeatedChar(char c, int cnt);
+const char* DisplayAtom(AtomType atom);
+void __DisplayTree(PTR* ptr, int _count);
+void DisplayTree(PTR* ptr);
+
+
+int Allocate(Operation operation, PTR** ptr);
+
+int DestroyPtr(PTR** ptr);
+void DestroyArrayOfPtr();
+
+void InitArrayOfPtr();
 
 
 #endif
