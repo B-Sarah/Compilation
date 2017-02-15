@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define S 0
+
 union __PTR;
 typedef union __PTR __PTR;
 
@@ -34,7 +36,12 @@ typedef struct {
 } Un;
 
 typedef struct {
-	char cod[10];
+	char code[10];
+	int index;
+} Cod;
+
+typedef struct {
+    Cod cod;
 	int action;
 	AtomType aType;
 } Atom;
@@ -54,12 +61,17 @@ struct PTR{
 };
 
 extern PTR* treeArray[5];
+extern const char* g0NonTerArray[5];
+extern const char* nonTerArray[200];
 
 PTR* GenConc(PTR* p1, PTR* p2);
 PTR* GenUnion(PTR* p1, PTR* p2);
 PTR* GenStar(PTR* p1);
 PTR* GenUn(PTR* p1);
 PTR* GenAtom(const char* cod, int action, AtomType aType);
+
+int elementAlreadyRead(const char* element);
+int elementMustBeAdded(const char* element);
 
 void printRepeatedChar(char c, int cnt);
 const char* DisplayAtom(AtomType atom);
@@ -73,6 +85,8 @@ int DestroyPtr(PTR** ptr);
 void DestroyArrayOfPtr();
 
 void InitArrayOfPtr();
+void initNonTerArray();
+int IsNonTer(const char* element);
 
 
 #endif

@@ -1,5 +1,7 @@
 #include "grammaire.h"
 PTR* treeArray[5];
+const char* g0NonTerArray[5];
+
 
 PTR* GenConc(PTR* p1, PTR* p2){
 	PTR* p = NULL;
@@ -41,14 +43,38 @@ PTR* GenUn(PTR* p1){
 }
 PTR* GenAtom(const char* cod, int action, AtomType aType){
 	PTR* p = NULL;
-
+	static int index = 1;
+    printf("gen atom : cod = %s\n", cod);
 	if(Allocate(ATOM,&p) == 0){
         p->type = ATOM;
-        strncpy(p->value->atom.cod, cod, 9);
+        strncpy(p->value->atom.cod.code, cod, 9);
         p->value->atom.action = action;
         p->value->atom.aType = aType;
+
+        if(aType == NONTER && elementMustBeAdded(cod)){
+            if(!elementAlreadyRead(cod)){
+                g0NonTerArray[index] = cod;
+                p->value->atom.cod.index = index;
+                printf("non ter array : cod = %s __ index = %d\n", cod, index);
+                index++;
+            }
+        }
     }
 	return p;
+}
+
+int elementAlreadyRead(const char* element){
+    int i;
+    for(i = 0; i < 5; i++){
+        if(strcmp(g0NonTerArray[i],element)==0){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int elementMustBeAdded(const char* element){
+    return strcmp(element, "IDNTER") != 0 && strcmp(element, "ELTER") != 0;
 }
 
 
@@ -77,7 +103,7 @@ int Allocate(Operation operation, PTR **p){
     if(ptr == NULL) return -1;
 
     if(operation == ATOM)
-        memset(ptr->atom.cod, '\0', 10 * sizeof(char));
+        memset(ptr->atom.cod.code, '\0', 10 * sizeof(char));
 
     tmp = (PTR*) malloc(p_Size+sizeof(Operation));
     //printf("P : %p", p);
@@ -155,7 +181,7 @@ void __DisplayTree(PTR* ptr, int _count){
     }
     else if(ptr->type == ATOM) {
         printRepeatedChar('-', _count*2);
-        printf("Atom %s %d %s \n",ptr->value->atom.cod, ptr->value->atom.action, DisplayAtom(ptr->value->atom.aType));
+        printf("Atom %s %d %s \n",ptr->value->atom.cod.code, ptr->value->atom.action, DisplayAtom(ptr->value->atom.aType));
 
     }
 }
@@ -175,13 +201,37 @@ void DestroyArrayOfPtr(){
 }
 
 void InitArrayOfPtr(){
-   treeArray[0] = GenConc(GenStar(GenConc(GenConc(GenConc(GenAtom("N",0,NONTER),GenAtom("->",0,TER)),GenAtom("E",0,NONTER)),GenAtom(",",1,TER))),GenAtom(";",0,TER));
-   treeArray[1] = GenAtom("IDNTER",0,NONTER);
-   treeArray[2] = GenConc(GenAtom("T",0,NONTER),GenStar(GenConc(GenAtom("+",0,TER),GenAtom("T",0,NONTER))));
-   treeArray[3] = GenConc(GenAtom("F",0,NONTER),GenStar(GenConc(GenAtom(".",0,TER),GenAtom("F",0,NONTER))));
-   treeArray[4] = GenUnion(GenUnion(GenUnion(GenUnion(GenAtom("IDNTER",0,NONTER),GenAtom("ELTER",0,NONTER)),
+    initNonTerArray();
+
+    treeArray[0] = GenConc(GenStar(GenConc(GenConc(GenConc(GenAtom("N",0,NONTER),GenAtom("->",0,TER)),GenAtom("E",0,NONTER)),GenAtom(",",1,TER))),GenAtom(";",0,TER));
+    treeArray[1] = GenAtom("IDNTER",0,NONTER);
+    treeArray[2] = GenConc(GenAtom("T",0,NONTER),GenStar(GenConc(GenAtom("+",0,TER),GenAtom("T",0,NONTER))));
+    treeArray[3] = GenConc(GenAtom("F",0,NONTER),GenStar(GenConc(GenAtom(".",0,TER),GenAtom("F",0,NONTER))));
+    treeArray[4] = GenUnion(GenUnion(GenUnion(GenUnion(GenAtom("IDNTER",0,NONTER),GenAtom("ELTER",0,NONTER)),
                                              GenConc(GenConc(GenAtom("(",0,TER),GenAtom("E",0,NONTER)),
                                                      GenAtom(")",0,TER))),GenConc(GenConc(GenAtom("[",0,TER),GenAtom("E",0,NONTER)),
                                                                                  GenAtom("]",0,TER))),GenConc(GenConc(GenAtom("[|",0,TER),GenAtom("E",0,NONTER)),GenAtom("|]",0,TER)));
+}
+
+void initNonTerArray(){
+    int i;
+    for(i = 0; i < 5; i++){
+        g0NonTerArray[i] = "";
+    }
+    g0NonTerArray[0] = "S";
+
+    for(i = 0; i < 200; i++){
+        nonTerArray[i] = "";
+    }
+}
+
+int IsNonTer(const char* element){
+    int i;
+    for(i = 0; i < 200; i++){
+        if(strcmp(element, nonTerArray[i]) == 0){
+            return 1;
+        }
+    }
+    return 0;
 }
 
