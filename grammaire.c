@@ -41,25 +41,28 @@ PTR* GenUn(PTR* p1){
     }
 	return p;
 }
-PTR* GenAtom(const char* cod, int action, AtomType aType){
-	PTR* p = NULL;
-	static int index = 1;
-    printf("gen atom : cod = %s\n", cod);
-	if(Allocate(ATOM,&p) == 0){
-        p->type = ATOM;
-        strncpy(p->value->atom.cod.code, cod, 9);
-        p->value->atom.action = action;
-        p->value->atom.aType = aType;
 
-        if(aType == NONTER && elementMustBeAdded(cod)){
-            if(!elementAlreadyRead(cod)){
-                g0NonTerArray[index] = cod;
-                p->value->atom.cod.index = index;
-                printf("non ter array : cod = %s __ index = %d\n", cod, index);
-                index++;
-            }
-        }
-    }
+
+
+PTR* GenAtom(const char* cod, int action, AtomType aType){
+	static int index = 1;
+	PTR* p = NULL;
+	printf("gen atom : cod = %s\n", cod);
+	if(Allocate(ATOM,&p) == 0){
+        	p->type = ATOM;
+	        strncpy(p->value->atom.cod.code, cod, 9);
+	        p->value->atom.action = action;
+        	p->value->atom.aType = aType;
+
+        	if(aType == NONTER && elementMustBeAdded(cod)){
+	            if(!elementAlreadyRead(cod)){
+        	        g0NonTerArray[index] = cod;
+                	p->value->atom.cod.index = index;
+	                printf("non ter array : cod = %s __ index = %d\n", cod, index);
+        	        index++;
+            	    }
+        	}
+    	}
 	return p;
 }
 

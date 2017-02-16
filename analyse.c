@@ -60,9 +60,15 @@ int Analyse(PTR* ptr){
             analyse = 1;
             if(Analyse(ptr->value->un.une)) ;
             break;
-        case ATOM :
+        case ATOM :{
+		const char* cStr = ptr->value->atom.cod.code;
+                int index = ptr->value->atom.cod.index;
+
             if(ptr->value->atom.aType == TER){
+		 printf("TER : code cod %s __ code index %d\n", cStr, index);
+		printf("StringRead : %s\n", stringRead);
                 if(strcmp(ptr->value->atom.cod.code, stringRead) == 0){
+		    printf("strcmp success\n");
                     analyse = 1;
                     if(ptr->value->atom.action != 0){
                         //G0Action(ptr->value->atom.action);
@@ -73,20 +79,23 @@ int Analyse(PTR* ptr){
                 }
 
             } else if(ptr->value->atom.aType == NONTER){
-                const char* cStr = ptr->value->atom.cod.code;
-                int index = ptr->value->atom.cod.index;
-                if(Analyse(treeArray[ptr->value->atom.cod.index])){
+                printf("AVANT : code cod %s __ code index %d\n", cStr, index);
+                if(1/*Analyse(treeArray[ptr->value->atom.cod.index])*/){
+		printf("APRES\n");
                     analyse = 1;
                     if(ptr->value->atom.action != 0){
                         //G0Action(ptr->value->atom.action);
                     }
+			Scan();
                 }
                 else{
                     analyse = 0;
                 }
 
-            }
-            break;
+            }else{
+		printf("Erreur dans l'analyse\n");
+		}
+            break;}
     }
     return analyse;
 }

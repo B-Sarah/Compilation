@@ -12,6 +12,7 @@ int main(){
      DisplayTree(treeArray[i]);
      printf("\n");
     }
+    Scan();
     Analyse(treeArray[S]);
 
     DestroyArrayOfPtr();
