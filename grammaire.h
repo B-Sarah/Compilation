@@ -60,9 +60,9 @@ struct PTR{
     Operation type;
 };
 
-extern PTR* treeArray[5];
+extern PTR* treeArray[50];
 extern const char* g0NonTerArray[5];
-extern const char* nonTerArray[200];
+extern int index;
 
 PTR* GenConc(PTR* p1, PTR* p2);
 PTR* GenUnion(PTR* p1, PTR* p2);
@@ -77,6 +77,7 @@ void printRepeatedChar(char c, int cnt);
 const char* DisplayAtom(AtomType atom);
 void __DisplayTree(PTR* ptr, int _count);
 void DisplayTree(PTR* ptr);
+void InitG0Index(PTR* ptr);
 
 
 int Allocate(Operation operation, PTR** ptr);
@@ -85,8 +86,7 @@ int DestroyPtr(PTR** ptr);
 void DestroyArrayOfPtr();
 
 void InitArrayOfPtr();
-void initNonTerArray();
-int IsNonTer(const char* element);
+void initG0NonTerArray();
 
 
 #endif
