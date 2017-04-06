@@ -1,6 +1,7 @@
 #include "grammaire.h"
 PTR* treeArray[50];
 const char* g0NonTerArray[5];
+const char* symbolArray[200];
 int index = 1;
 
 
@@ -233,10 +234,10 @@ void InitArrayOfPtr(){
     initG0NonTerArray();
 
     treeArray[0] = GenConc(GenStar(GenConc(GenConc(GenConc(GenAtom("N",0,NONTER),GenAtom("->",0,TER)),GenAtom("E",0,NONTER)),GenAtom(",",1,TER))),GenAtom(";",0,TER));
-    treeArray[1] = GenAtom("IDNTER",2,NONTER);
+    treeArray[1] = GenAtom("IDNTER",2,TER);
     treeArray[2] = GenConc(GenAtom("T",0,NONTER),GenStar(GenConc(GenAtom("+",0,TER),GenAtom("T",3,NONTER))));
     treeArray[3] = GenConc(GenAtom("F",0,NONTER),GenStar(GenConc(GenAtom(".",0,TER),GenAtom("F",4,NONTER))));
-    treeArray[4] = GenUnion(GenUnion(GenUnion(GenUnion(GenAtom("IDNTER",5,NONTER),GenAtom("ELETER",5,TER)),
+    treeArray[4] = GenUnion(GenUnion(GenUnion(GenUnion(GenAtom("IDNTER",5,TER),GenAtom("ELETER",5,TER)),
                                              GenConc(GenConc(GenAtom("(",0,TER),GenAtom("E",0,NONTER)),
                                                      GenAtom(")",0,TER))),GenConc(GenConc(GenAtom("[",0,TER),GenAtom("E",0,NONTER)),
                                                                                  GenAtom("]",6,TER))),GenConc(GenConc(GenAtom("[|",0,TER),GenAtom("E",0,NONTER)),GenAtom("|]",7,TER)));
@@ -255,7 +256,31 @@ void initG0NonTerArray(){
         g0NonTerArray[i] = "";
     }
     g0NonTerArray[0] = "S";
+
+    for(i = 0; i < 200; i++){
+        symbolArray[i] = "";
+    }
+
+    symbolArray[0] = "->";
+    symbolArray[1] = ".";
+    symbolArray[2] = ",";
+    symbolArray[3] = ";";
+    symbolArray[4] = "[";
+    symbolArray[5] = "]";
+    symbolArray[6] = "[|";
+    symbolArray[7] = "|]";
+    symbolArray[8] = ".";
+    symbolArray[9] = "+";
+    symbolArray[10] = "(";
+    symbolArray[11] = ")";
 }
 
+int isSymbol(const char* sym){
+    int i;
+    for(i = 0; i < 200; i++){
+        if(strcmp(sym, symbolArray[i]) == 0) return 1;
+    }
+    return 0;
+}
 
 

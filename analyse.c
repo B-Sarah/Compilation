@@ -3,15 +3,16 @@
 Stack actionStack;
 ScanSymbol symbol;
 
-void Scan(){
-    char stringRead[10];
+void ScanG0(){
+    char stringRead[200];
     static int cursor = 0;
     char currentChar = '\0';
-    memset(stringRead, '\0', 10 * sizeof(char));
+    memset(stringRead, '\0', 200 * sizeof(char));
+    memset(symbol.chaine, '\0', 200 * sizeof(char));
     char cToStr[2];
 
     do{
-        currentChar = expression[cursor];
+        currentChar = expressionGPL[cursor];
         if(currentChar == ' ' || currentChar == '\0')
             break;
         //printf("char read : %c\n", currentChar);
@@ -20,84 +21,110 @@ void Scan(){
         strcat(stringRead, cToStr);
         cursor++;
     }while(currentChar != ' ' && currentChar != '\0');
-    //printf("read : %s\n", stringRead);
-
     cursor = (currentChar == '\0' ? 0 : cursor+1);
 
-    printf("Scan a lu : %s\n", stringRead);
-    if(IsNonTer(stringRead)){
-       symbol.atome.aType = NONTER;
-       strcpy(symbol.atome.cod.code ,"IDNTER");
-    }else if(IsTer(stringRead)){
-        symbol.atome.aType = TER;
+    symbol.atome.aType = TER;
+
+    symbol.atome.action = GetActionFromElement(stringRead);
+
+    if(symbol.atome.action != 0){
+        char read = '\0';
+        int index = 0;
+
+        do{
+            read = stringRead[index];
+            index++;
+        }while(read != '#');
+        strncpy(stringRead, stringRead, index - 1);
+        stringRead[index - 1] = '\0';
+    }
+
+    //cas symbol
+    if(isSymbol(stringRead)){
+        strcpy(symbol.atome.cod.code ,stringRead);
+        strcpy(symbol.chaine, stringRead);
+    }
+    //cas elter
+    else if(stringRead[0] == '\'' && stringRead[strlen(stringRead) - 1] == '\''){
+        strncpy(symbol.chaine, stringRead + 1, strlen(stringRead) - 1 - 1);
+        printf("Lu un \' : %s\n", symbol.chaine);
         strcpy(symbol.atome.cod.code ,"ELETER");
     }
-    else{
-        symbol.atome.aType = TER;
-        strcpy(symbol.atome.cod.code, stringRead);
+    //cas idnter
+    else {
+       symbol.atome.aType = NONTER;
+       strcpy(symbol.atome.cod.code ,"IDNTER");
+       strcpy(symbol.chaine, stringRead);
     }
-    symbol.atome.action = GetActionFromElement(stringRead);
-    strcpy(symbol.chaine, stringRead);
 
     DisplaySymbol(symbol);
 }
 
-int Analyse(PTR* ptr){
+int AnalyseG0(PTR* ptr){
     int analyse = 0;
     switch(ptr->type){
         case CONC :
-            if(Analyse(ptr->value->conc.left)){
-                analyse = Analyse(ptr->value->conc.right);
+            //printf("Analyse de conc ");
+            //printf("avec lu %s\n", symbol.atome.cod.code);
+            if(AnalyseG0(ptr->value->conc.left)){
+
+                analyse = AnalyseG0(ptr->value->conc.right);
+                //printf("resultat conc droite %d\n", analyse);
             } else{
                 analyse = 0;
+                //printf("resultat conc gauche %d\n", analyse);
             }
             break;
         case UNION :
-            if(Analyse(ptr->value->_union.left)){
+            //printf("Analyse de union partie gauche\n");
+            if(AnalyseG0(ptr->value->_union.left)){
                 analyse = 1;
             } else{
-                analyse = Analyse(ptr->value->_union.right);
+                //printf("Analyse de union partie droite\n");
+                analyse = AnalyseG0(ptr->value->_union.right);
             }
             break;
         case STAR :
+            //printf("Analyse de star\n");
             analyse = 1;
-            while(Analyse(ptr->value->star.stare)) ;
+            while(AnalyseG0(ptr->value->star.stare)) ;
+            //printf("Analyse star finie %d\n", analyse);
             break;
         case UN :
             analyse = 1;
-            if(Analyse(ptr->value->un.une)) ;
+            if(AnalyseG0(ptr->value->un.une)) ;
             break;
         case ATOM :{
             if(ptr->value->atom.aType == TER){
-                printf("Lu un TER : %s\n", ptr->value->atom.cod.code);
-                printf("Scan courant : %s\n", symbol.chaine);
-                printf("Le scan respecte la grammaire ? ...\n");
+                printf("Lu un TER : %s", ptr->value->atom.cod.code);
+                printf(" Scan courant : %s\n", symbol.chaine);
+                //printf("Le scan respecte la grammaire ? ...\n");
                 if(strcmp(ptr->value->atom.cod.code, symbol.atome.cod.code) == 0){
-                    printf("Oui\n");
+                    //printf("Oui\n");
                     analyse = 1;
                     if(ptr->value->atom.action != 0){
                         G0Action(ptr->value->atom.action);
                     }
-                    Scan();
+                    ScanG0();
                 } else {
-                    printf("Non\n");
+                    //printf("Non\n");
                     analyse = 0;
                 }
 
             } else if(ptr->value->atom.aType == NONTER){
                 printf("Lu un NON-TER : %s, index %d\n", ptr->value->atom.cod.code, ptr->value->atom.cod.index);
 
-                if(ptr->value->atom.cod.index == -1){
+                /*if(ptr->value->atom.cod.index == -1){
                     printf("IDNTER, on passe pas\n");
                     return 0;
                 }
                 if(ptr->value->atom.cod.index == -2){
                     printf("IDNTER, on passe\n");
                     return 1;
-                }
-                printf("L'analyse a marche ?...\n");
-                if(Analyse(treeArray[ptr->value->atom.cod.index])){
-                    printf("Oui\n");
+                }*/
+                //printf("L'analyse a marche ?...\n");
+                if(AnalyseG0(treeArray[ptr->value->atom.cod.index])){
+                    //printf("Oui\n");
                     analyse = 1;
                     if(ptr->value->atom.action != 0){
                         G0Action(ptr->value->atom.action);
@@ -105,7 +132,7 @@ int Analyse(PTR* ptr){
 
                 }
                 else{
-                    printf("Non\n");
+                    //printf("Non\n");
                     analyse = 0;
                 }
 
@@ -145,58 +172,64 @@ int IsNonTer(const char* element){
     int i;
     for(i = 0; i < 200; i++){
         if(strcmp(element, nonTerArray[i]) == 0){
-            return 1;
+            return i;
         }
     }
-    return 0;
+    return -1;
 }
 
 int IsTer(const char* element){
     int i;
     for(i = 0; i < 200; i++){
         if(strcmp(element, terArray[i]) == 0){
-            return 1;
+            return i;
         }
     }
-    return 0;
+    return -1;
 }
 
 void InitTerNonTerArray(){
     int i;
     for(i = 0; i < 200; i++){
-        nonTerArray[i] = "";
-        terArray[i] = "";
+        strcpy(nonTerArray[i], "");
+        strcpy(terArray[i], "");
     }
 }
 
 void G0Action(int action){
-    PTR *T1, *T2;
+    PTR *T1 = NULL, *T2 = NULL;
+    int indx = 0;
+    PTR* atome;
     switch(action){
         case 1:
             T1 = Pop(&actionStack);
             T2 = Pop(&actionStack);
-            printf("index : %d", (T2->value->atom.cod.index));
+            printf("GO index : %d\n", (T2->value->atom.cod.index));
             treeArray[(T2->value->atom.cod.index) + 5] = T1;
             break;
         case 2:
-            Push(&actionStack, GenAtom(Search(nonTerArray), action, NONTER));
+            atome = GenAtom(SearchDICONT(&indx), symbol.atome.action, NONTER);
+            atome->value->atom.cod.index = indx;
+            Push(&actionStack,atome);
             break;
         case 3:
             T1 = Pop(&actionStack);
             T2 = Pop(&actionStack);
-            Push(&actionStack, GenUnion(T1, T2));
+            Push(&actionStack, GenUnion(T2, T1));
             break;
         case 4:
             T1 = Pop(&actionStack);
             T2 = Pop(&actionStack);
-            Push(&actionStack, GenConc(T1, T2));
+            Push(&actionStack, GenConc(T2, T1));
             break;
         case 5:
             if(symbol.atome.aType == TER){
-               Push(&actionStack, GenAtom(Search(terArray), action, TER));
+               Push(&actionStack, GenAtom(SearchDICOT(), symbol.atome.action, TER));
             }
             else{
-               Push(&actionStack, GenAtom(Search(nonTerArray), action, NONTER));
+               atome = GenAtom(SearchDICONT(&indx), symbol.atome.action, NONTER);
+               atome->value->atom.cod.index = indx;
+               Push(&actionStack, atome);
             }
             break;
         case 6:
@@ -213,20 +246,41 @@ void G0Action(int action){
 
 }
 
-const char* Search(const char* DICO[]){
+const char* SearchDICONT(int* indx){
     int i;
     for(i = 0; i < 200; i++){
-        if(strcmp(symbol.chaine, DICO[i]) == 0){
+
+        if(strcmp(symbol.chaine, nonTerArray[i]) == 0){
+            *indx = i;
+            printf("WARNING !!!!!! DICO EXIST %d %s", i, nonTerArray[i]);
             return symbol.chaine;
         }
-        if(strcmp(DICO[i], "")){
-            DICO[i] = symbol.chaine;
+        if(strcmp(nonTerArray[i], "") == 0){
+            *indx = i;
+            strcpy(nonTerArray[i], symbol.chaine);
+            printf("WARNING !!!!!! DICO  %d %s\n", i, nonTerArray[i]);
+            return symbol.chaine;
+        }
+
+    }
+    *indx = -1;
+    return "";
+}
+
+const char* SearchDICOT(){
+    int i;
+    for(i = 0; i < 200; i++){
+
+        if(strcmp(symbol.chaine, terArray[i]) == 0){
+            return symbol.chaine;
+        }
+        if(strcmp(terArray[i], "") == 0){
+            strcpy(terArray[i], symbol.chaine);
             return symbol.chaine;
         }
 
     }
     return "";
-
 }
 
 

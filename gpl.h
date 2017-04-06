@@ -5,6 +5,19 @@
 
 #include "analyse.h"
 
+#define ADD 0
+#define SUB 1
+#define DIV 2
+#define MUL 3
+#define AND 4
+#define OR 5
+#define SUPE 6
+#define SUP 7
+#define INF 8
+#define INFE 9
+#define EG 10
+#define NEG 11
+
 extern char program[1000];
 
 typedef enum{
@@ -12,7 +25,7 @@ typedef enum{
 }GPLType;
 
 typedef enum{
-    VAL, OP
+    ENTIER, DOUBLE, OP
 }PCodeType;
 
 typedef union{
@@ -30,6 +43,7 @@ typedef struct{
 
 typedef union{
     int value;
+    double valueD;
     char op[5];
 }PCodeUnion;
 
@@ -82,6 +96,7 @@ void addValueToPcode(int value);
 void addOpToPcode(char* op);
 
 void setValueToPcode(int value, int pos);
+void setValueDToPcode(double value, int pos);
 void setOpToPcode(char* op, int pos);
 
 void pushValueToTravail(int value);
@@ -90,8 +105,12 @@ int popValueToTravail();
 void displayPCode();
 
 int varToAddress(char* ident, int type);
+int getVariable(char* ident, Variable* found);
+
 void displayVarList();
 
 void storeToLastSymbol();
+
+const char* getOpByInt(int op);
 
 #endif // GPL_H

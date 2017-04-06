@@ -62,6 +62,8 @@ struct PTR{
 
 extern PTR* treeArray[50];
 extern const char* g0NonTerArray[5];
+extern const char* symbolArray[200];
+
 extern int index;
 
 PTR* GenConc(PTR* p1, PTR* p2);
@@ -87,6 +89,8 @@ void DestroyArrayOfPtr();
 
 void InitArrayOfPtr();
 void initG0NonTerArray();
+
+int isSymbol(const char* sym);
 
 
 #endif

@@ -5,27 +5,29 @@
 #include "stack.h"
 
 extern Stack actionStack;
-extern char expression[200];
+extern char expressionGPL[5000];
 
 typedef struct{
     Atom atome;
-    char chaine[20];
+    char chaine[200];
 }ScanSymbol;
 
 
 extern ScanSymbol symbol;
 
-extern const char* nonTerArray[200];
-extern const char* terArray[200];
+extern char nonTerArray[200][200];
+extern char terArray[200][200];
 
-void Scan();
-int Analyse(PTR* ptr);
+void ScanG0();
+int AnalyseG0(PTR* ptr);
 int GetActionFromElement(const char* element);
 void DisplaySymbol(ScanSymbol symbol);
 void InitTerNonTerArray();
 int IsTer(const char* element);
 int IsNonTer(const char* element);
+void G0Action(int action);
 
-const char* Search(const char* DICO[]);
+const char* SearchDICOT();
+const char* SearchDICONT(int* indx);
 
 #endif

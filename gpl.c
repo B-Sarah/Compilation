@@ -212,22 +212,403 @@ int AnalyseGPL(PTR* ptr){
 }
 
 void GPLAction(int action){
+    //printf("Action : %d\n", action);
     switch(action){
     case 1:{
         int prevTop = tableVar.top;
-        setOpToPcode("LDA", pcode.top + 1);
         int top = varToAddress(prevGplSymbol.value.ident, ENT);
         if(prevTop == top){
             printf("Error program - Multiple declaration of %s\n", prevGplSymbol.value.ident);
+            exit(-1);
         }
+        setOpToPcode("LDA", pcode.top + 1);
         setValueToPcode(top, pcode.top + 1);
         break;
     }
     case 2:
         setOpToPcode("LDC", pcode.top + 1);
         setValueToPcode(prevGplSymbol.value.integer, pcode.top + 1);
+        setOpToPcode("AFF", pcode.top + 1);
+        break;
+    case 3:{
+        int prevTop = tableVar.top;
+        int top = varToAddress(prevGplSymbol.value.ident, DBL);
+        if(prevTop == top){
+            printf("Error program - Multiple declaration of %s\n", prevGplSymbol.value.dbl);
+            exit(-1);
+        }
+        setOpToPcode("LDA", pcode.top + 1);
+        setValueToPcode(top, pcode.top + 1);
         break;
     }
+    case 4:
+        setOpToPcode("LDC", pcode.top + 1);
+        setValueDToPcode(prevGplSymbol.value.dbl, pcode.top + 1);
+        setOpToPcode("AFF", pcode.top + 1);
+        break;
+    case 5:{
+        int prevTop = tableVar.top;
+        int top = varToAddress(prevGplSymbol.value.ident, ENT);
+        if(prevTop == top){
+            printf("Error program - Multiple declaration of %s\n", prevGplSymbol.value.ident);
+            exit(-1);
+        }
+        setOpToPcode("LDA", pcode.top + 1);
+        setValueToPcode(top, pcode.top + 1);
+        break;
+    }
+    case 6:
+        setOpToPcode("LDC", pcode.top + 1);
+        if(strcmp(prevGplSymbol.value.ident, "TRUE") == 0)
+            setValueToPcode(1, pcode.top + 1);
+        else
+            setValueToPcode(0, pcode.top + 1);
+
+        setOpToPcode("AFF", pcode.top + 1);
+        break;
+    case 7:{
+
+        Variable v;
+        int ret = getVariable(prevGplSymbol.value.ident, &v);
+        if(ret == -1){
+            printf("Error program - Variable %s not declared\n", prevGplSymbol.value.ident);
+            exit(-1);
+        }
+        setOpToPcode("LDA", pcode.top + 1);
+        int pos = varToAddress(prevGplSymbol.value.ident, v.type);
+        setValueToPcode(pos, pcode.top + 1);
+        pushValueToTravail(pcode.top);
+        break;
+    }
+    case 8:{
+
+        int varIndex = popValueToTravail();
+        int addressVar = pcode.value[varIndex].pValue.value;
+        if(tableVar.vars[addressVar].type == ENT){
+            setOpToPcode("LDV", pcode.top + 1);
+            setValueToPcode(addressVar, pcode.top + 1);
+            setOpToPcode("LDC", pcode.top + 1);
+            setValueToPcode(1, pcode.top + 1);
+            setOpToPcode("ADD", pcode.top + 1);
+            setOpToPcode("AFF", pcode.top + 1);
+        } else {
+            printf("Error program - Operator ++ usable only with integers\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 9:{
+        int varIndex = popValueToTravail();
+        int addressVar = pcode.value[varIndex].pValue.value;
+        if(tableVar.vars[addressVar].type == ENT){
+            setOpToPcode("LDV", pcode.top + 1);
+            setValueToPcode(addressVar, pcode.top + 1);
+            setOpToPcode("LDC", pcode.top + 1);
+            setValueToPcode(1, pcode.top + 1);
+            setOpToPcode("SUB", pcode.top + 1);
+            setOpToPcode("AFF", pcode.top + 1);
+        } else {
+            printf("Error program - Operator -- usable only with integers\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 10:{
+        int varIndex = popValueToTravail();
+        pushValueToTravail(varIndex);
+        int addressVar = pcode.value[varIndex].pValue.value;
+        if(tableVar.vars[addressVar].type == ENT){
+            setOpToPcode("LDC", pcode.top + 1);
+            setValueToPcode(prevGplSymbol.value.integer, pcode.top + 1);
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 11:{
+        int varIndex = popValueToTravail();
+        pushValueToTravail(varIndex);
+        int addressVar = pcode.value[varIndex].pValue.value;
+        if(tableVar.vars[addressVar].type == DBL){
+            setOpToPcode("LDC", pcode.top + 1);
+            setValueToPcode(prevGplSymbol.value.dbl, pcode.top + 1);
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 12:{
+        int varIndex = popValueToTravail();
+        pushValueToTravail(varIndex);
+        int addressVar = pcode.value[varIndex].pValue.value;
+        Variable v;
+        int address = getVariable(prevGplSymbol.value.ident, &v);
+        if(tableVar.vars[addressVar].type == v.type){
+            setOpToPcode("LDV", pcode.top + 1);
+            setValueToPcode(address, pcode.top + 1);
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 13:
+        pushValueToTravail(ADD);
+        break;
+    case 14:
+        pushValueToTravail(SUB);
+        break;
+    case 15:
+        pushValueToTravail(MUL);
+        break;
+    case 16:
+        pushValueToTravail(DIV);
+        break;
+    case 17:{
+        int op = popValueToTravail();
+        int varIndex = popValueToTravail();
+        pushValueToTravail(varIndex);
+        int addressVar = pcode.value[varIndex].pValue.value;
+        if(tableVar.vars[addressVar].type == ENT){
+            setOpToPcode("LDC", pcode.top + 1);
+            setValueToPcode(prevGplSymbol.value.integer, pcode.top + 1);
+            const char* optxt = getOpByInt(op);
+            if(strcmp(optxt, "") != 0){
+                setOpToPcode(optxt, pcode.top + 1);
+                setOpToPcode("AFF", pcode.top + 1);
+            }
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 18:{
+        int op = popValueToTravail();
+        int varIndex = popValueToTravail();
+        pushValueToTravail(varIndex);
+        int addressVar = pcode.value[varIndex].pValue.value;
+        if(tableVar.vars[addressVar].type == DBL){
+            setOpToPcode("LDC", pcode.top + 1);
+            setValueToPcode(prevGplSymbol.value.dbl, pcode.top + 1);
+            const char* optxt = getOpByInt(op);
+            if(strcmp(optxt, "") != 0){
+                setOpToPcode(optxt, pcode.top + 1);
+                setOpToPcode("AFF", pcode.top + 1);
+            }
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 19:{
+        int op = popValueToTravail();
+        int varIndex = popValueToTravail();
+        pushValueToTravail(varIndex);
+        int addressVar = pcode.value[varIndex].pValue.value;
+        Variable v;
+        int address = getVariable(prevGplSymbol.value.ident, &v);
+        if(tableVar.vars[addressVar].type == v.type){
+            setOpToPcode("LDV", pcode.top + 1);
+            setValueToPcode(address, pcode.top + 1);
+            const char* optxt = getOpByInt(op);
+            if(strcmp(optxt, "") != 0){
+                setOpToPcode(optxt, pcode.top + 1);
+                setOpToPcode("AFF", pcode.top + 1);
+            }
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 20:
+        setOpToPcode("JIF", pcode.top + 1);
+        pushValueToTravail(pcode.top + 1);
+        pcode.top++;
+        break;
+    case 21:
+        setOpToPcode("JMP", pcode.top + 1);
+        setValueToPcode(pcode.top + 2, popValueToTravail());
+        pcode.top++;
+        break;
+    case 22:{
+        int val = popValueToTravail();
+        setValueToPcode(pcode.top + 1, val);
+        break;
+    }
+    case 23:
+        setOpToPcode("OR", pcode.top + 1);
+        break;
+    case 24:
+        setOpToPcode("AND", pcode.top + 1);
+        break;
+    case 25:
+        setOpToPcode("LDC", pcode.top + 1);
+        setValueToPcode(prevGplSymbol.value.integer, pcode.top + 1);
+        break;
+    case 26:
+        setOpToPcode("LDC", pcode.top + 1);
+        if(strcmp(prevGplSymbol.value.ident, "TRUE") == 0)
+            setValueToPcode(1, pcode.top + 1);
+        else
+            setValueToPcode(0, pcode.top + 1);
+        break;
+    case 27:{
+        Variable v;
+        int address = getVariable(prevGplSymbol.value.ident, &v);
+        if(v.type == ENT){
+            setOpToPcode("LDV", pcode.top + 1);
+            setValueToPcode(address, pcode.top + 1);
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 28:{
+        setOpToPcode("LDC", pcode.top + 1);
+        setValueToPcode(prevGplSymbol.value.integer, pcode.top + 1);
+        int op = popValueToTravail();
+        const char* optxt = getOpByInt(op);
+        if(strcmp(optxt, "") != 0){
+            setOpToPcode(optxt, pcode.top + 1);
+        }
+        break;
+    }
+    case 29:{
+        setOpToPcode("LDC", pcode.top + 1);
+
+        if(strcmp(prevGplSymbol.value.ident, "TRUE") == 0)
+            setValueToPcode(1, pcode.top + 1);
+        else
+            setValueToPcode(0, pcode.top + 1);
+
+        int op = popValueToTravail();
+        const char* optxt = getOpByInt(op);
+        if(strcmp(optxt, "") != 0){
+            setOpToPcode(optxt, pcode.top + 1);
+        }
+        break;
+    }
+    case 30:{
+        Variable v;
+        int address = getVariable(prevGplSymbol.value.ident, &v);
+        if(v.type == ENT){
+            setOpToPcode("LDV", pcode.top + 1);
+            setValueToPcode(address, pcode.top + 1);
+            int op = popValueToTravail();
+            const char* optxt = getOpByInt(op);
+            if(strcmp(optxt, "") != 0){
+                setOpToPcode(optxt, pcode.top + 1);
+            }
+        } else {
+            printf("Error program - Does not respect type\n");
+            exit(-1);
+        }
+        break;
+    }
+    case 31:
+        pushValueToTravail(SUP);
+        break;
+    case 32:
+        pushValueToTravail(SUPE);
+        break;
+    case 33:
+        pushValueToTravail(INF);
+        break;
+    case 34:
+        pushValueToTravail(INFE);
+        break;
+    case 35:
+        pushValueToTravail(EG);
+        break;
+    case 36:
+        pushValueToTravail(NEG);
+        break;
+    case 37:
+        setOpToPcode("JIF", pcode.top + 1);
+        pushValueToTravail(pcode.top + 1);
+        pcode.top++;
+        break;
+    case 38:{
+        int add = popValueToTravail();
+        int addBool = popValueToTravail();
+        setValueToPcode(pcode.top + 3, add);
+        setOpToPcode("JMP", pcode.top + 1);
+        setValueToPcode(addBool, pcode.top + 1);
+        break;
+    }
+    case 39:
+        setOpToPcode("NOT", pcode.top + 1);
+        break;
+    case 40:
+        setOpToPcode("LDC", pcode.top + 1);
+        setValueToPcode(prevGplSymbol.value.integer, pcode.top + 1);
+        setOpToPcode("WR", pcode.top + 1);
+        break;
+    case 41:
+        setOpToPcode("LDC", pcode.top + 1);
+        setValueToPcode(prevGplSymbol.value.dbl, pcode.top + 1);
+        setOpToPcode("WR", pcode.top + 1);
+        break;
+    case 42:{
+        Variable v;
+        int address = getVariable(prevGplSymbol.value.ident, &v);
+        setOpToPcode("LDV", pcode.top + 1);
+        setValueToPcode(address, pcode.top + 1);
+        setOpToPcode("WR", pcode.top + 1);
+        break;
+    }
+    case 43:{
+        Variable v;
+        int address = getVariable(prevGplSymbol.value.ident, &v);
+        setOpToPcode("LDA", pcode.top + 1);
+        setValueToPcode(address, pcode.top + 1);
+        setOpToPcode("RD", pcode.top + 1);
+        setOpToPcode("AFF", pcode.top + 1);
+        break;
+    }
+
+    case 44:{
+        pushValueToTravail(pcode.top + 1);
+        break;
+    }
+    case 45:{
+        popValueToTravail();
+        break;
+    }
+
+    }
+}
+
+const char* getOpByInt(int op){
+    switch(op){
+    case ADD:
+        return "ADD";
+    case SUB:
+        return "SUB";
+    case MUL:
+        return "MUL";
+    case DIV:
+        return "DIV";
+    case SUP:
+        return "SUP";
+    case SUPE:
+        return "SUPE";
+    case INF:
+        return "INF";
+    case INFE:
+        return "INFE";
+    case EG:
+        return "EG";
+    case NEG:
+        return "NEG";
+    }
+    return "";
 }
 
 int isGplSymbol(const char* gplRead){
@@ -328,19 +709,15 @@ void initKeywords(){
 
 }
 
-void addValueToPcode(int value){
-    pcode.value[pcode.top].type = VAL;
-    pcode.value[pcode.top].pValue.value = value;
-    pcode.top++;
-}
-void addOpToPcode(char* op){
-    pcode.value[pcode.top].type = OP;
-    strcpy(pcode.value[pcode.top].pValue.op, op);
-    pcode.top++;
-}
 void setValueToPcode(int value, int pos){
-    pcode.value[pos].type = VAL;
+    pcode.value[pos].type = ENTIER;
     pcode.value[pos].pValue.value = value;
+    if(pos >= pcode.top) pcode.top = pos;
+}
+
+void setValueDToPcode(double value, int pos){
+    pcode.value[pos].type = DOUBLE;
+    pcode.value[pos].pValue.valueD = value;
     if(pos >= pcode.top) pcode.top = pos;
 }
 
@@ -364,17 +741,19 @@ void displayPCode(){
     printf("Pcode : top %d\n", pcode.top);
     for(i = 0; i <= pcode.top; i++){
         if(pcode.value[i].type == OP)
-            printf("op : %s\n", pcode.value[i].pValue.op);
-        if(pcode.value[i].type == VAL)
-            printf("contenu : %d\n", pcode.value[i].pValue.value);
+            printf("%d - op : %s\n", i, pcode.value[i].pValue.op);
+        if(pcode.value[i].type == ENTIER)
+            printf("%d - contenu : %d\n", i, pcode.value[i].pValue.value);
+        if(pcode.value[i].type == DOUBLE)
+            printf("%d - contenu : %lf\n", i, pcode.value[i].pValue.valueD);
     }
 }
 
 int varToAddress(char* ident, int type){
     int i;
     for(i = 0; i <= tableVar.top; i++){
-        if(strcmp(tableVar.vars[tableVar.top].idents, ident) == 0){
-            if(tableVar.vars[tableVar.top].type != type) return -1;
+        if(strcmp(tableVar.vars[i].idents, ident) == 0){
+            if(tableVar.vars[i].type != type) return -1;
             return i;
         }
     }
@@ -389,7 +768,7 @@ void displayVarList(){
     printf("Table des vars\n");
     for(i = 0; i < 200; i++){
         if(strcmp(tableVar.vars[i].idents, "") != 0){
-            printf("%s (%d)\n", tableVar.vars[i].idents, tableVar.vars[i].type);
+            printf("%d - %s (%d)\n", i, tableVar.vars[i].idents, tableVar.vars[i].type);
         }
     }
 }
@@ -414,4 +793,15 @@ void storeToLastSymbol(){
         strcpy(prevGplSymbol.value.ident, gplSymbol.value.ident);
         break;
     }
+}
+
+int getVariable(char* ident, Variable* found){
+    int i;
+    for(i = 0; i < 200; i++){
+        if(strcmp(tableVar.vars[i].idents, ident) == 0){
+            *found = tableVar.vars[i];
+            return i;
+        }
+    }
+    return -1;
 }
