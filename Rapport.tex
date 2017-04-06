@@ -1,0 +1,82 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{makeidx}
+\makeindex
+\usepackage{lmodern}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+
+\newcommand{\br}{\\\mbox{}}
+
+
+
+\begin{document}
+
+\pagenumbering{gobble}
+
+\title{Rapport Compilation}
+\date{Avril 2017}
+\author{Sarra BOUTAHLIL\br Alexis DONNART}
+
+
+\maketitle
+
+\begin{abstract}
+Dans le cadre du cours de compilation dispensé à Nantes par M. Oussalah en 2017, il nous a été demandé de réaliser une brève présentation des outils d'analyse lex et yacc.\br
+\end{abstract}
+
+\pagebreak 
+
+\tableofcontents
+
+\pagebreak 
+
+
+\pagebreak 
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+Les outils \textit{lex} et \textit{yacc} (et leur équivalent \textit{flex} et \textit{bison}) sont des outils d'analyse lexical et syntaxique. Ces deux outils fonctionnent en collaboration afin d'effectuer l'analyse d'une grammaire, permettant la base de l'écriture d'un compilateur. Rapide présentation de ces deux outils.
+\section{Lex}
+Ce premier outil, écrit en C, permet la spécification d'analyseurs lexicaux.  Plus spécifiquement, un programme écrit en lex pourra être converti en programme C proposant un analyseur lexical suivant le contenu du fichier.\br
+Ce programme défini un ensemble de règles qui seront appliqués à un texte d'entrée, chaque règle correspond à une expression régulière qui sera testé contre le texte d'entrée. Si la règle est valide, une action associée est exécutée. Pour résumé, un programme C résultant d'un fichier lex correspond à notre analyseur G0 ou GPL.\br
+Un fichier lex est décomposé en 2 grandes parties : les définitions régulières, et les règles. Les définitions régulières, décrites sous la forme \textit{identificateur exprRegulière} forment les expressions que l'analyseur devra reconnaitre. L'expression sont de la forme classique des expressions régulières UNIX. Exemple :
+\begin{lstlisting}
+lettre [A-Za-z]
+chiffre [0-9]
+\end{lstlisting}
+Les règles, elles, correspondent aux actions à réaliser en cas de détection d'une expression. Un programme lex étant avant tout un programme C, les actions sont des instructions qui, au fil de du déroulement de l'analyse, seront exécutées. Ces règles sont de la forme : \textit{identificateur \{action\}}. Exemple :
+\begin{lstlisting}
+if                  {return SI;}
+then                {return ALORS;}
+{lettre}{alphanum}* {return IDENTIF;}
+\end{lstlisting}
+Certains choix vont être appliqués aux différentes règles : parmis toutes les règles, celle reconnaissant la plus grande chaine est appliquée, si elles ont la même taille, la première règle par ordre d'apparition est appliqué. Si aucune règle n'est appliqué pour un caractère, le programme l'affichera.\br
+Une fois l'analyse terminée, le programme produit un fichier lex.yy.c qui contiendra l'ensemble des règles de définition de l'analyseur.
+
+\section{Yacc}
+Également écrit en C, cet outil complète lex en proposant de produire un  analyseur syntaxique pour un schéma de traduction proposé en entrée qui sera également produit en C. Ce schéma de traduction, pouvant être le fichier généré par lex, se compose d'une gramme, et d'actions sémantique associés. Un programme yacc représente un analyseur LALR.\br
+Le programme est divisé en deux grandes parties : les déclarations, et les règles de traduction. Les déclarations sont composés de variables globales au code, ainsi que de différentes spécificités de yacc tels que les tokens définissant des caractères terminaux. Exemple : 
+\begin{lstlisting}
+%token ENTIER
+\end{lstlisting}
+Les règles correspondent à une grammaire écrite sous la forme : 
+\begin{lstlisting}
+<partie gauche > : <alt1> {action semantique 1}
+| <alt2> {action semantique 2}
+...
+| <altn> {action semantique n}
+;
+\end{lstlisting}
+La partie gauche, correspondant au non terminal d'une règle et la partie droite à la règle de production. Chaque règle sera associée à une action, écrite sous la forme d'instructions C, qui seront exécutés lorsque la règle correspondante aura été reconnue dans le texte et un \textit{reduce} aura permis de réduire la règle. On peut notamment accéder aux différents symboles d'une règle avec \textit{\$\$} qui indiquera le non terminal en partie gauche, ou bien \textit{\$i} qui indiquera le i-ème terminal ou non terminal de la partie droite.\br
+Finalement, et c'est là l'avantage de combiner yacc et lex, le programme yacc doit avoir des règles de productions des \textit{tokens} définis précédemment, nous avons pour ce faire la possibilité d'écrire un programme C reconnaissant les différents symboles, ou bien d'utiliser l'analyseur produiot dans le fichier lex.yy.c .
+
+\pagebreak
+\end{document}
